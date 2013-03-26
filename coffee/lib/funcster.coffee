@@ -73,8 +73,7 @@ funcster =
     root
 
   # Recusrively traverses objects and collects serialized functions, along with
-  # the path of references required to access the serialization. Each function
-  # is programmatically assigned a name, based the reference path.
+  # the path of references required to access the serialization.
   _deepSelectSerializations: (root, marker = '__js_function') ->
     deep.select root, (obj) -> _.isObject(obj) && _.isString(obj[marker])
 
