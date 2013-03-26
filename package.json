@@ -1,0 +1,30 @@
+{
+  "name": "funcster",
+  "version": "0.0.1",
+  "description": "Function serialization and deserialization",
+  "keywords": [ "function", "serialize", "deserialize", "serialization", "deserialization" ],
+  "author": "Jeff Lee <jeffomatic@gmail.com>",
+  "repository": {
+    "type" : "git",
+    "url" : "http://github.com/jeffomatic/funcster.git"
+  },
+  "bugs": {
+    "url" : "http://github.com/jeffomatic/funcster/issues"
+  },
+  "licenses": [
+    {
+      "type" : "MIT",
+      "url" : "http://github.com/jeffomatic/funcster/raw/master/LICENSE"
+    }
+  ],
+  "main": "./js/lib/funcster",
+  "dependencies": {
+    "underscore": "~1.4.4",
+    "deep": "~0.0.1"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.2",
+    "mocha": "~1.8.2",
+    "should": "~1.2.2"
+  }
+}
