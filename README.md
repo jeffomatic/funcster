@@ -1,7 +1,7 @@
 
 # funcster
 
-This library contains utilities for serializing and deserializing functions. It provides recursive traversal to discover nested functions and serialized functions, which is particularly useful for embedding functions in JSON objects.
+This library contains utilities for serializing and deserializing functions. It provides recursive traversal to discover both serialized and unserialized functions nested within objects and arrays. This is particularly useful for embedding functions into JSON objects.
 
 ## Function reference
 
