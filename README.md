@@ -8,7 +8,8 @@ This library contains utilities for serializing and deserializing functions. It 
 ### serialize(function, [marker])
 
 ```js
-serialize(function(arg) { return "Hello " + arg.toString() });
+serialize(function() { return "Hello world!" });
+// -> { __js_function: 'function() { return "Hello world!" }' }
 ```
 
 ----
@@ -19,12 +20,12 @@ serialize(function(arg) { return "Hello " + arg.toString() });
 lib = {
   moduleA: {
     functions: {
-      helloWorld: function() { console.log "Hello world!" }
+      helloWorld: function() { return "Hello world!" }
     }
   },
   moduleB: {
     functions: {
-      goodbyeWorld: function() { console.log "Goodbye world!" }
+      goodbyeWorld: function() { return "Goodbye world!" }
     }
   },
 };
@@ -34,12 +35,12 @@ funcster.deepSerialize(lib);
 // -> {
 //      moduleA: {
 //        functions: {
-//          helloWorld: { __js_function: 'function() { console.log "Hello world!" }' }
+//          helloWorld: { __js_function: 'function() { return "Hello world!" }' }
 //        }
 //      },
 //      moduleB: {
 //        functions: {
-//          goodbyeWorld: { __js_function: 'function() { console.log "Goodbye world!" }' }
+//          goodbyeWorld: { __js_function: 'function() { return "Goodbye world!" }' }
 //        }
 //      },
 //    }
@@ -53,12 +54,12 @@ funcster.deepSerialize(lib);
 serializedLib = {
   moduleA: {
     functions: {
-      helloWorld: { __js_function: 'function() { console.log "Hello world!" }' }
+      helloWorld: { __js_function: 'function() { return "Hello world!" }' }
     }
   },
   moduleB: {
     functions: {
-      goodbyeWorld: { __js_function: 'function() { console.log "Goodbye world!" }' }
+      goodbyeWorld: { __js_function: 'function() { return "Goodbye world!" }' }
     }
   },
 };
