@@ -89,17 +89,37 @@
         entries.push("" + name + ": " + body);
       }
       entries = entries.join(',');
-      return "module.exports=(function(global,module,exports){return{" + entries + "};})();";
+      return "module.exports=(function(module,exports){return{" + entries + "};})();";
     },
-    _generateModule: function(content, opts) {
-      var exportsObj, globals, k, sandbox, v;
+    _rerequire: function(modulesByName) {
+      var backupCache, k, module, modules, name, v, _ref;
+
+      backupCache = {};
+      _ref = require.cache;
+      for (k in _ref) {
+        v = _ref[k];
+        backupCache[k] = v;
+        delete require.cache[k];
+      }
+      modules = {};
+      for (name in modulesByName) {
+        module = modulesByName[name];
+        modules[name] = require(module);
+      }
+      for (k in backupCache) {
+        v = backupCache[k];
+        require.cache[k] = v;
+      }
+      return modules;
+    },
+    _generateModule: function(script, opts) {
+      var exportsObj, globals, k, sandbox, v, _ref;
 
       if (opts == null) {
         opts = {};
       }
       sandbox = {};
       exportsObj = {};
-      sandbox.global = sandbox;
       sandbox.exports = exportsObj;
       sandbox.module = {
         exports: exportsObj
@@ -107,9 +127,16 @@
       globals = opts.globals || {};
       for (k in globals) {
         v = globals[k];
-        sandbox.global[k] = v;
+        sandbox[k] = v;
       }
-      vm.createScript(content, opts.filename).runInNewContext(sandbox);
+      if (opts.requires != null) {
+        _ref = this._rerequire(opts.requires);
+        for (k in _ref) {
+          v = _ref[k];
+          sandbox[k] = v;
+        }
+      }
+      vm.createScript(script, opts.filename).runInNewContext(sandbox);
       return sandbox.module.exports;
     }
   };

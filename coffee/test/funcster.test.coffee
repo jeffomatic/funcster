@@ -82,6 +82,19 @@ describe 'funcster module', () ->
       script = funcster._generateModuleScript(functions)
       script.should.eql 'module.exports=(function(module,exports){return{func_a: function(arg) { return arg; },func_b: function(arg) { return [ arg ]; }};})();'
 
+  describe '_rerequire', () ->
+
+    before () ->
+      @rerequired = funcster._rerequire(_: 'underscore', funcster: '../lib/funcster')
+
+    it 'should preserve the require cache', () ->
+      assert.equal _, require('underscore')
+      assert.equal funcster, require('../lib/funcster')
+
+    it 'should generate new copies of pre-existing modules', () ->
+      assert.notEqual _, @rerequired._
+      assert.notEqual funcster, @rerequired.funcster
+
   describe '_generateModule()', () ->
 
     it 'should export objects', () ->
@@ -155,6 +168,65 @@ describe 'funcster module', () ->
       assert moduleObj.String(new String)
       assert moduleObj.Function(() ->)
       assert moduleObj.Date(new Date)
+
+    describe 'injection using requires option', () ->
+
+      it 'grants access to modules', () ->
+        script = funcster._generateModuleScript(testFunc: 'function(arg) { return _.max(arg); }')
+        moduleObj = funcster._generateModule(script, requires: {_: 'underscore'})
+
+        assert.equal moduleObj.testFunc([1, 2, 3]), _.max([1, 2, 3])
+
+      it 'uses different module objects', () ->
+        _.temp = () ->
+        script = funcster._generateModuleScript(testFunc: 'function(arg) { return _.temp(); }')
+        moduleObj = funcster._generateModule(script, requires: {_: 'underscore'})
+
+        assert.throws (() ->moduleObj.testFunc()), /TypeError/
+
+      describe 'injecting underscore', () ->
+        before () ->
+          functions =
+            getUnderscore: 'function() { return _; }'
+            isFunction: 'function() { return _.isFunction(function(){}); }'
+            isArray: 'function() { return _.isArray([]); }'
+            isObject: 'function() { return _.isObject({}); }'
+            isString: 'function() { return _.isString(""); }'
+            isNumber: 'function() { return _.isNumber(5); }'
+            isBoolean: 'function() { return _.isBoolean(true); }'
+            isDate: 'function() { return _.isDate(new Date); }'
+            isRegExp: 'function() { return _.isRegExp(/test/); }'
+            isNull: 'function() { return _.isNull(null); }'
+            isUndefined: 'function() { return _.isUndefined(undefined); }'
+
+          script = funcster._generateModuleScript(functions)
+          @moduleObj = funcster._generateModule(script, requires: {_: 'underscore'})
+
+        it 'should preserve type check functions for primordial objects created in the current context', () ->
+          underscore2 = @moduleObj.getUnderscore()
+
+          assert underscore2.isFunction(() ->)
+          assert underscore2.isArray([])
+          assert underscore2.isObject({})
+          assert underscore2.isString('')
+          assert underscore2.isNumber(5)
+          assert underscore2.isBoolean(true)
+          assert underscore2.isDate(new Date)
+          assert underscore2.isRegExp(/test/)
+          assert underscore2.isNull(null)
+          assert underscore2.isUndefined(undefined)
+
+        it 'should preserve type check functions for primordial objects created in the evaluation context', () ->
+          assert @moduleObj.isFunction()
+          assert @moduleObj.isArray()
+          assert @moduleObj.isObject()
+          assert @moduleObj.isString()
+          assert @moduleObj.isNumber()
+          assert @moduleObj.isBoolean()
+          assert @moduleObj.isDate()
+          assert @moduleObj.isRegExp()
+          assert @moduleObj.isNull()
+          assert @moduleObj.isUndefined()
 
   describe 'deepDeserialize()', () ->
 

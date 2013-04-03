@@ -31,6 +31,12 @@ funcster =
   # @root {object}
   # @marker {string}
   # @moduleOpts {object}
+  #
+  # Options:
+  # - globals: use this to inject objects from the current context into the
+  #            function evaluation context
+  # - requires: use this to require modules reachable from the current context
+  #             into the function evaluation context.
   deepDeserialize: (root, extraArgs...) ->
     switch extraArgs.length
       when 0
@@ -82,25 +88,45 @@ funcster =
     entries = []
     entries.push("#{name}: #{body}") for name, body of serializedFunctions
     entries = entries.join(',')
-    "module.exports=(function(global,module,exports){return{#{entries}};})();"
+    "module.exports=(function(module,exports){return{#{entries}};})();"
+
+  _rerequire: (modulesByName) ->
+    # Backup the require cache, and then clear it
+    backupCache = {}
+    for k, v of require.cache
+      backupCache[k] = v
+      delete require.cache[k]
+
+    # Re-require objects
+    modules = {}
+    modules[name] = require(module) for name, module of modulesByName
+
+    # Restore the require cache
+    require.cache[k] = v for k, v of backupCache
+
+    # Return the module list
+    modules
 
   # Given a text/javascript representation of an object, execute that
   # representation as a script and return it as a module.
-  _generateModule: (content, opts = {}) ->
+  _generateModule: (script, opts = {}) ->
     # Create blank sandbox
     sandbox = {}
     exportsObj = {}
 
-    sandbox.global = sandbox
     sandbox.exports = exportsObj
     sandbox.module = { exports: exportsObj }
 
-    # Add libs
+    # Direct injection of globals
     globals = opts.globals || {}
-    sandbox.global[k] = v for k, v of globals
+    sandbox[k] = v for k, v of globals
+
+    # Add required libs
+    if opts.requires?
+      sandbox[k] = v for k, v of @_rerequire(opts.requires)
 
     # Generate runtime script and execute in sandbox.
-    vm.createScript(content, opts.filename).runInNewContext(sandbox)
+    vm.createScript(script, opts.filename).runInNewContext(sandbox)
 
     # Running the script should have updated the exports.
     sandbox.module.exports
