@@ -1,5 +1,5 @@
 _ = require('underscore')
-should = require('should')
+assert = require('assert')
 testHelper = require('./test_helper')
 funcster = require('../lib/funcster')
 
@@ -12,14 +12,14 @@ describe 'funcster module', () ->
       @serializedTestFunc = funcster.serialize(@testFunc)
 
     it 'should wrap a function in an object', () ->
-      _.keys(@serializedTestFunc).should.eql [ '__js_function' ]
+      assert.deepEqual _.keys(@serializedTestFunc), [ '__js_function' ]
 
     it 'should serialize the function to a string', () ->
-      @serializedTestFunc.__js_function.should.eql @testFunc.toString()
+      assert.equal @serializedTestFunc.__js_function, @testFunc.toString()
 
     it 'should allow for custom serialization markers', () ->
       serialzed = funcster.serialize(@testFunc, 'CUSTOM_MARKER')
-      _.keys(serialzed).should.eql [ 'CUSTOM_MARKER' ]
+      assert.deepEqual _.keys(serialzed), [ 'CUSTOM_MARKER' ]
 
   describe 'deepSerialize()', () ->
 
@@ -47,16 +47,16 @@ describe 'funcster module', () ->
       @serialized = funcster.deepSerialize(@original)
 
     it 'should serialize deeply nested functions', () ->
-      @serialized.arr[0].__js_function.should.eql @original.arr[0].toString()
-      @serialized.arr[3].__js_function.should.eql @original.arr[3].toString()
-      @serialized.arr[4].foobar.__js_function.should.eql @original.arr[4].foobar.toString()
-      @serialized.obj.a[0].b.c.__js_function.should.eql @original.obj.a[0].b.c.toString()
+      assert.equal @serialized.arr[0].__js_function, @original.arr[0].toString()
+      assert.equal @serialized.arr[3].__js_function, @original.arr[3].toString()
+      assert.equal @serialized.arr[4].foobar.__js_function, @original.arr[4].foobar.toString()
+      assert.equal @serialized.obj.a[0].b.c.__js_function, @original.obj.a[0].b.c.toString()
 
     it 'should retain non-function values', () ->
-      @serialized.arr[1].should.eql 'hello!'
-      @serialized.arr[2].should.eql 1
-      @serialized.arr[4].foo.should.eql 'bar'
-      @serialized.obj.z.should.eql 'just a string!'
+      assert.equal @serialized.arr[1], 'hello!'
+      assert.equal @serialized.arr[2], 1
+      assert.equal @serialized.arr[4].foo, 'bar'
+      assert.equal @serialized.obj.z, 'just a string!'
 
   describe '_deepSelectSerializations()', () ->
 
@@ -64,13 +64,13 @@ describe 'funcster module', () ->
       @selected = funcster._deepSelectSerializations(@serialized)
 
     it 'should collect all serialized functions', () ->
-      @selected.length.should.eql 4
+      assert.equal @selected.length, 4
 
     it 'should set paths correctly', () ->
-      @selected[0].path.should.eql [ 'arr', '0' ]
-      @selected[1].path.should.eql [ 'arr', '3' ]
-      @selected[2].path.should.eql [ 'arr', '4', 'foobar' ]
-      @selected[3].path.should.eql [ 'obj', 'a', '0', 'b', 'c' ]
+      assert.deepEqual @selected[0].path, [ 'arr', '0' ]
+      assert.deepEqual @selected[1].path, [ 'arr', '3' ]
+      assert.deepEqual @selected[2].path, [ 'arr', '4', 'foobar' ]
+      assert.deepEqual @selected[3].path, [ 'obj', 'a', '0', 'b', 'c' ]
 
   describe '_generateModuleScript()', () ->
 
@@ -88,9 +88,10 @@ describe 'funcster module', () ->
       func = (arg) -> "Hello #{arg}!"
       script = "module.exports = { foo: #{func.toString()} }"
       moduleObj = funcster._generateModule(script)
-      (moduleObj?).should.eql true
-      (moduleObj.foo?).should.eql true
-      moduleObj.foo('world').should.eql 'Hello world!'
+
+      assert moduleObj?
+      assert moduleObj.foo?
+      assert.equal moduleObj.foo('world'), 'Hello world!'
 
     it 'should not include typical node.js globals by default', () ->
       objects = [ 'global', 'process', 'require', 'setTimeout', 'clearTimeout',
@@ -100,7 +101,9 @@ describe 'funcster module', () ->
       functions.push "#{obj}: function() { #{obj}; }" for obj in objects
       script = 'module.exports = {' + functions.join(',') + '}'
       moduleObj = funcster._generateModule(script)
-      (() -> moduleObj[obj]()).should.throw /is not defined/ for obj in objects
+
+      for obj in objects
+        assert.throws (() -> moduleObj[obj]()), /is not defined/
 
     it 'should have falsy values for modules and exports when using standard template', () ->
       objects = [ 'module', 'exports' ]
@@ -108,7 +111,8 @@ describe 'funcster module', () ->
       functions[obj] = "function() { return !#{obj}; }" for obj in objects
       script = funcster._generateModuleScript(functions)
       moduleObj = funcster._generateModule(script)
-      moduleObj[obj]().should.eql true for obj in objects
+
+      assert(moduleObj[obj]()) for obj in objects
 
     it 'should define standard global values', () ->
       objects = [ 'Object', 'Array', 'String', 'Date', 'Function' ]
@@ -116,7 +120,8 @@ describe 'funcster module', () ->
       functions[obj] = "function() { return !!#{obj}; }" for obj in objects
       script = funcster._generateModuleScript(functions)
       moduleObj = funcster._generateModule(script)
-      moduleObj[obj]().should.eql true for obj in objects
+
+      assert(moduleObj[obj]()) for obj in objects
 
     it 'instanceof operator fails by default', () ->
       objects = [ 'Object', 'Array', 'String', 'Date', 'Function' ]
@@ -124,11 +129,12 @@ describe 'funcster module', () ->
       functions[obj] = "function(arg) { return arg instanceof #{obj}; }" for obj in objects
       script = funcster._generateModuleScript(functions)
       moduleObj = funcster._generateModule(script)
-      moduleObj.Object({}).should.eql false
-      moduleObj.Array([]).should.eql false
-      moduleObj.String(new String).should.eql false
-      moduleObj.Function(() ->).should.eql false
-      moduleObj.Date(new Date).should.eql false
+
+      assert !moduleObj.Object({})
+      assert !moduleObj.Array([])
+      assert !moduleObj.String(new String)
+      assert !moduleObj.Function(() ->)
+      assert !moduleObj.Date(new Date)
 
     it 'instanceof operator succeeds with global injection', () ->
       objects = [ 'Object', 'Array', 'String', 'Date', 'Function' ]
@@ -143,11 +149,12 @@ describe 'funcster module', () ->
           Function: Function
           Date: Date
       )
-      moduleObj.Object({}).should.eql true
-      moduleObj.Array([]).should.eql true
-      moduleObj.String(new String).should.eql true
-      moduleObj.Function(() ->).should.eql true
-      moduleObj.Date(new Date).should.eql true
+
+      assert moduleObj.Object({})
+      assert moduleObj.Array([])
+      assert moduleObj.String(new String)
+      assert moduleObj.Function(() ->)
+      assert moduleObj.Date(new Date)
 
   describe 'deepDeserialize()', () ->
 
@@ -180,38 +187,39 @@ describe 'funcster module', () ->
       it 'one arg: root', () ->
         serialized = { __js_function: 'function() { return "hello" }' }
         deserialized = funcster.deepDeserialize(serialized)
-        deserialized().should.eql 'hello'
+
+        assert.equal deserialized(), 'hello'
 
       it 'two args: root, marker', () ->
         serialized = { CUSTOM_MARKER: 'function() { return "hello" }' }
         deserialized = funcster.deepDeserialize(serialized, 'CUSTOM_MARKER')
-        deserialized().should.eql 'hello'
+
+        assert.equal deserialized(), 'hello'
 
       it 'two args: root, moduleOpts', () ->
         serialized = { __js_function: 'function() { return foobar }' }
         deserialized = funcster.deepDeserialize(serialized, globals: { foobar: 'hello' })
-        deserialized().should.eql 'hello'
+
+        assert.equal deserialized(), 'hello'
 
       it 'three args: root, marker, moduleOpts', () ->
         serialized = { CUSTOM_MARKER: 'function() { return foobar }' }
         deserialized = funcster.deepDeserialize(serialized, 'CUSTOM_MARKER', globals: { foobar: 'hello' })
-        deserialized().should.eql 'hello'
+
+        assert.equal deserialized(), 'hello'
 
     it 'deserialized functions should work like unserialized versions', () ->
-      @deserialized.arr[0]('world').should.eql @original.arr[0]('world')
-      @deserialized.arr[3]('world').should.eql @original.arr[3]('world')
-      @deserialized.arr[4].foobar('world').should.eql @original.arr[4].foobar('world')
-      @deserialized.obj.a[0].b.c('world').should.eql @original.obj.a[0].b.c('world')
+      assert.equal @deserialized.arr[0]('world'), @original.arr[0]('world')
+      assert.equal @deserialized.arr[3]('world'), @original.arr[3]('world')
+      assert.equal @deserialized.arr[4].foobar('world'), @original.arr[4].foobar('world')
+      assert.equal @deserialized.obj.a[0].b.c('world'), @original.obj.a[0].b.c('world')
 
     it 'deserialized functions should not be copies of the unserialized versions', () ->
-      # We use this slightly strange syntax because the functions in @deserialized
-      # derive from an Object base class in a different context, so it has not
-      # been extended by the should module.
-      (@deserialized.arr[0] != @original.arr[0]).should.eql true
-      (@deserialized.arr[3] != @original.arr[3]).should.eql true
-      (@deserialized.arr[4].foobar != @original.arr[4].foobar).should.eql true
-      (@deserialized.obj.a[0].b.c != @original.obj.a[0].b.c).should.eql true
+      assert.notEqual @deserialized.arr[0], @original.arr[0]
+      assert.notEqual @deserialized.arr[3], @original.arr[3]
+      assert.notEqual @deserialized.arr[4].foobar, @original.arr[4].foobar
+      assert.notEqual @deserialized.obj.a[0].b.c, @original.obj.a[0].b.c
 
     it 'should preserve the original structure', () ->
-      @deserialized.arr[1].should.eql @original.arr[1]
-      @deserialized.obj.z.should.eql @original.obj.z
+      assert.equal @deserialized.arr[1], @original.arr[1]
+      assert.equal @deserialized.obj.z, @original.obj.z
