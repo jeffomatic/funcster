@@ -102,14 +102,20 @@
     });
     describe('_rerequire', function() {
       before(function() {
-        return this.rerequired = funcster._rerequire({
+        this.cacheSizeBefore = _.size(require.cache);
+        this.rerequired = funcster._rerequire({
           _: 'underscore',
-          funcster: '../lib/funcster'
+          funcster: '../lib/funcster',
+          dummyModule: '../../test/dummy_module'
         });
+        return this.cacheSizeAfter = _.size(require.cache);
       });
       it('should preserve the require cache', function() {
         assert.equal(_, require('underscore'));
         return assert.equal(funcster, require('../lib/funcster'));
+      });
+      it('should not add new modules to the require cache', function() {
+        return assert.equal(this.cacheSizeBefore, this.cacheSizeAfter);
       });
       return it('should generate new copies of pre-existing modules', function() {
         assert.notEqual(_, this.rerequired._);

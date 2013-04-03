@@ -102,6 +102,7 @@ funcster =
     modules[name] = require(module) for name, module of modulesByName
 
     # Restore the require cache
+    delete require.cache[k] for k, v of require.cache
     require.cache[k] = v for k, v of backupCache
 
     # Return the module list

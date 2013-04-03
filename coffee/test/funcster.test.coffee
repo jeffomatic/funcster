@@ -85,11 +85,19 @@ describe 'funcster module', () ->
   describe '_rerequire', () ->
 
     before () ->
-      @rerequired = funcster._rerequire(_: 'underscore', funcster: '../lib/funcster')
+      @cacheSizeBefore = _.size(require.cache)
+      @rerequired = funcster._rerequire
+        _: 'underscore'
+        funcster: '../lib/funcster'
+        dummyModule: '../../test/dummy_module'
+      @cacheSizeAfter = _.size(require.cache)
 
     it 'should preserve the require cache', () ->
       assert.equal _, require('underscore')
       assert.equal funcster, require('../lib/funcster')
+
+    it 'should not add new modules to the require cache', () ->
+      assert.equal @cacheSizeBefore, @cacheSizeAfter
 
     it 'should generate new copies of pre-existing modules', () ->
       assert.notEqual _, @rerequired._

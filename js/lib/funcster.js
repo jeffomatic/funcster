@@ -92,7 +92,7 @@
       return "module.exports=(function(module,exports){return{" + entries + "};})();";
     },
     _rerequire: function(modulesByName) {
-      var backupCache, k, module, modules, name, v, _ref;
+      var backupCache, k, module, modules, name, v, _ref, _ref1;
 
       backupCache = {};
       _ref = require.cache;
@@ -105,6 +105,11 @@
       for (name in modulesByName) {
         module = modulesByName[name];
         modules[name] = require(module);
+      }
+      _ref1 = require.cache;
+      for (k in _ref1) {
+        v = _ref1[k];
+        delete require.cache[k];
       }
       for (k in backupCache) {
         v = backupCache[k];

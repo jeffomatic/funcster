@@ -71,3 +71,25 @@ deserializedLib = funcster.deepDeserialize(serializedLib);
 deserializedLib.moduleA.functions.helloWorld(); // -> Hello world!
 deserializedLib.moduleB.functions.goodbyeWorld(); // -> Hello world!
 ```
+
+Available options:
+
+#### globals (object)
+
+This option injects objects from the host context into the function evaluation context. The key is the name of the object inside the function evaluation context, and the value is the object in the host context.
+
+```js
+deserializedLib = funcster.deepDeserialize(serializedLib, {
+  globals: { foo: true }
+});
+```
+
+#### requires (object)
+
+This option injects `require`-able modules into the function evaluation context. These modules will be **re-required** in the host context, generating distinct module objects to those that might already exist. This is a safer method of granting serialized functions access to common libraries.
+
+```js
+deserializedLib = funcster.deepDeserialize(serializedLib, {
+  requires: { _: 'underscore' }
+});
+```
