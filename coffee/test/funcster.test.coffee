@@ -2,6 +2,7 @@ _ = require('underscore')
 assert = require('assert')
 testHelper = require('./test_helper')
 funcster = require('../lib/funcster')
+bubblesort = require('./bubblesort.test')
 
 describe 'funcster module', () ->
 
@@ -15,11 +16,26 @@ describe 'funcster module', () ->
       assert.deepEqual _.keys(@serializedTestFunc), [ '__js_function' ]
 
     it 'should serialize the function to a string', () ->
-      assert.equal @serializedTestFunc.__js_function, @testFunc.toString()
+      # test here for equality, ignoring whitespace.
+      assert.equal @serializedTestFunc.__js_function.replace(/\s/g, ''), @testFunc.toString().replace(/\s/g, '')
 
     it 'should allow for custom serialization markers', () ->
       serialzed = funcster.serialize(@testFunc, 'CUSTOM_MARKER')
       assert.deepEqual _.keys(serialzed), [ 'CUSTOM_MARKER' ]
+
+  describe 'serialize with nontrivial functions', ->
+
+    before () ->
+      @testFunc = bubblesort
+      @serializedTestFunc = funcster.serialize(@testFunc)
+      @deserializedTestFunc = funcster.deepDeserialize(@serializedTestFunc)
+
+    it 'should minify the function', ->
+      assert @testFunc.toString().length > @serializedTestFunc.__js_function.length
+
+    it 'should still function the same', ->
+      testObj = [5, 4, 3, 2, 6, 12, 14]
+      assert.equal @deserializedTestFunc(testObj), @testFunc(testObj)
 
   describe 'deepSerialize()', () ->
 
@@ -47,10 +63,11 @@ describe 'funcster module', () ->
       @serialized = funcster.deepSerialize(@original)
 
     it 'should serialize deeply nested functions', () ->
-      assert.equal @serialized.arr[0].__js_function, @original.arr[0].toString()
-      assert.equal @serialized.arr[3].__js_function, @original.arr[3].toString()
-      assert.equal @serialized.arr[4].foobar.__js_function, @original.arr[4].foobar.toString()
-      assert.equal @serialized.obj.a[0].b.c.__js_function, @original.obj.a[0].b.c.toString()
+      # ignore whitespace when checking for equality.
+      assert.equal @serialized.arr[0].__js_function.replace(/\s/g, ''), @original.arr[0].toString().replace(/\s/g, '')
+      assert.equal @serialized.arr[3].__js_function.replace(/\s/g, ''), @original.arr[3].toString().replace(/\s/g, '')
+      assert.equal @serialized.arr[4].foobar.__js_function.replace(/\s/g, ''), @original.arr[4].foobar.toString().replace(/\s/g, '')
+      assert.equal @serialized.obj.a[0].b.c.__js_function.replace(/\s/g, ''), @original.obj.a[0].b.c.toString().replace(/\s/g, '')
 
     it 'should retain non-function values', () ->
       assert.equal @serialized.arr[1], 'hello!'
@@ -80,7 +97,7 @@ describe 'funcster module', () ->
         'func_b': 'function(arg) { return [ arg ]; }'
 
       script = funcster._generateModuleScript(functions)
-      script.should.eql 'module.exports=(function(module,exports){return{func_a: function(arg) { return arg; },func_b: function(arg) { return [ arg ]; }};})();'
+      assert.equal script, 'module.exports=(function(module,exports){return{func_a: function(arg) { return arg; },func_b: function(arg) { return [ arg ]; }};})();'
 
   describe '_rerequire', () ->
 
