@@ -2,7 +2,6 @@ _ = require('underscore')
 assert = require('assert')
 testHelper = require('./test_helper')
 funcster = require('../lib/funcster')
-bubblesort = require('./bubblesort.test')
 
 describe 'funcster module', () ->
 
@@ -26,7 +25,7 @@ describe 'funcster module', () ->
   describe 'serialize with nontrivial functions', ->
 
     before () ->
-      @testFunc = bubblesort
+      @testFunc = testHelper.bubblesort
       @serializedTestFunc = funcster.serialize(@testFunc)
       @deserializedTestFunc = funcster.deepDeserialize(@serializedTestFunc)
 
@@ -36,6 +35,18 @@ describe 'funcster module', () ->
     it 'should still function the same', ->
       testObj = [5, 4, 3, 2, 6, 12, 14]
       assert.equal @deserializedTestFunc(testObj), @testFunc(testObj)
+
+  describe 'serialize with whitespace differences', ->
+
+    before ->
+      @serializedCoffeeScriptFn = funcster.serialize testHelper.compiledByCoffeeScript
+      @serializedIndentedFn = funcster.serialize testHelper.withALeadingIndent
+      @serializedNewlineFn = funcster.serialize testHelper.withExcessiveNewlines
+
+    it 'should serialize to the same string', ->
+      assert.deepEqual @serializedCoffeeScriptFn, @serializedIndentedFn
+      assert.deepEqual @serializedIndentedFn, @serializedNewlineFn
+
 
   describe 'deepSerialize()', () ->
 

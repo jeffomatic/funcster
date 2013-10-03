@@ -1,7 +1,7 @@
 _ = require('underscore')
 vm = require('vm')
 deep = require('deep')
-jsmin = require('../../dependencies/jsmin').minify
+jsmin = require('../../deps/jsmin').minify
 
 
 # funcster - function serialization utilities
@@ -9,7 +9,7 @@ funcster =
 
   serialize: (func, marker = '__js_function') ->
     wrapper = {}
-    wrapper[marker] = jsmin(func.toString())
+    wrapper[marker] = jsmin('', func.toString(), 3) # level 3 of minification
     wrapper
 
   # Recursively traverses objects and replaces functions with object-wrapped,

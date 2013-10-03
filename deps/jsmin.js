@@ -277,7 +277,7 @@ function jsmin(comment, input, level) {
   function m() {
 
     var r = [];
-    a = '\n';
+    a = '';
 
     r.push(action(3));
 
@@ -367,4 +367,4 @@ function jsmin(comment, input, level) {
   return comment + ret;
 
 }
-exports.minify = jsmin;
+module.exports = {minify: jsmin};

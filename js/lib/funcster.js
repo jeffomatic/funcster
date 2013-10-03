@@ -9,7 +9,7 @@
 
   deep = require('deep');
 
-  jsmin = require('../../dependencies/jsmin').minify;
+  jsmin = require('../../deps/jsmin').minify;
 
   funcster = {
     serialize: function(func, marker) {
@@ -18,7 +18,7 @@
         marker = '__js_function';
       }
       wrapper = {};
-      wrapper[marker] = jsmin(func.toString());
+      wrapper[marker] = jsmin('', func.toString(), 3);
       return wrapper;
     },
     deepSerialize: function(root, marker) {
