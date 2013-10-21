@@ -118,10 +118,11 @@
         var functions, script;
         functions = {
           'func_a': 'function(arg) { return arg; }',
-          'func_b': 'function(arg) { return [ arg ]; }'
+          'func_b': 'function(arg) { return [ arg ]; }',
+          'complicated -" *$@ name': 'function(arg) { return arg; }'
         };
         script = funcster._generateModuleScript(functions);
-        return assert.equal(script, 'module.exports=(function(module,exports){return{func_a: function(arg) { return arg; },func_b: function(arg) { return [ arg ]; }};})();');
+        return assert.equal(script, 'module.exports=(function(module,exports){return{"func_a": function(arg) { return arg; },"func_b": function(arg) { return [ arg ]; },"complicated -\\" *$@ name": function(arg) { return arg; }};})();');
       });
     });
     describe('_rerequire', function() {
