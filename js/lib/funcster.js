@@ -85,7 +85,7 @@
       entries = [];
       for (name in serializedFunctions) {
         body = serializedFunctions[name];
-        entries.push("" + name + ": " + body);
+        entries.push("" + (JSON.stringify(name)) + ": " + body);
       }
       entries = entries.join(',');
       return "module.exports=(function(module,exports){return{" + entries + "};})();";

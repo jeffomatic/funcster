@@ -88,7 +88,7 @@ funcster =
   # Builds a text/javascript representation of a collection of functions.
   _generateModuleScript: (serializedFunctions) ->
     entries = []
-    entries.push("#{name}: #{body}") for name, body of serializedFunctions
+    entries.push("#{JSON.stringify(name)}: #{body}") for name, body of serializedFunctions
     entries = entries.join(',')
     "module.exports=(function(module,exports){return{#{entries}};})();"
 
