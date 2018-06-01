@@ -53,6 +53,12 @@ funcster.deepSerialize(lib);
 
 ### deepDeserialize(root, [marker, [moduleOpts]])
 
+#### Security warning
+
+`deepDeserialize` performs code evaluation on strings, and is susceptible to arbitrary code injection. Please make sure that `root` comes from a trusted source before using it.
+
+#### Example
+
 ```js
 serializedLib = {
   moduleA: {
