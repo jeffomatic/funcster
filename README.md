@@ -2,6 +2,10 @@
 
 This library contains utilities for serializing and deserializing functions. It provides recursive traversal to discover both serialized and unserialized functions nested within objects and arrays. This is particularly useful for embedding functions into JSON objects.
 
+## Security warning
+
+This package performs the equivalent of `eval`, and thus should only be used to deserialize functions delivered from trusted sources. Do not use any of the deserialization functions on strings fron untrusted sources.
+
 ## Installation
 
     npm install funcster
